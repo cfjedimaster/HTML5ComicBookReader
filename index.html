@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>ComicViewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+    <link href="./bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="./bootstrap/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="./bootstrap/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="./bootstrap/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="./bootstrap/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="./bootstrap/ico/apple-touch-icon-57-precomposed.png">
+
+	<script src="js/zip.js"></script>
+	<script src="js/deflate.js"></script>
+	<script src="js/main.js"></script>
+  </head>
+
+<style>
+#dropbox {
+	width: 300px;
+	height: 100px;
+	background-color: yellow;
+}
+
+#comicImg {
+	width:100%;
+}
+</style>
+</head>
+    
+<body onload="init()">
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">ComicViewer</a>
+          <!--
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </div>
+      	  -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+		<h1>Online JavaScript ComicViewer</h1>
+		<p id="introText">Welcome to the Online JavaScript ComicViewer. To begin, simply drag and drop a CBZ file here.</p>
+
+		<div id="alertArea"></div>
+
+		<div class="modal hide" id="statusModal">
+		  <div class="modal-header">
+		    <h3>Status</h3>
+		  </div>
+		  <div class="modal-body">
+		  	<p id="statusModalText"></p>
+		  </div>
+		</div>
+
+		<p id="buttonArea" style="display:none">
+		<button id="prevBtn" class="btn">Previous</button> <button id="nextBtn" class="btn">Next</button> <span id="panelCount"></span>
+		</p>
+
+		<p>
+		<img id="comicImg" />
+		</p>
+
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="./bootstrap/js/jquery-1.7.2.min.js"></script>
+    <script src="./bootstrap/js/bootstrap-modal.js"></script>
+    <script src="./bootstrap/js/bootstrap-alert.js"></script>
+
+  </body>
+</html>

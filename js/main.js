@@ -1,6 +1,5 @@
 var images = [];
 var done = 0;
-var dir;
 var curPanel;
 
 //Generic error handler
@@ -10,28 +9,26 @@ function errorHandler(e) {
 }
 
 function init() {	
-	window.webkitStorageInfo.requestQuota(window.TEMPORARY, 20*1024*1024, function(grantedBytes) {
-		window.webkitRequestFileSystem(window.TEMPORARY, grantedBytes, onInitFs, errorHandler);
-	}, errorHandler);
 
-}
+	$("#prevBtn").on("click",prevPanel);
+	$("#nextBtn").on("click",nextPanel);
 
-function onInitFs(fs) {
-	dir = fs.root;
-	$(document).on("dragover", dragOverHandler);
+	loadArchiveFormats(['rar', 'zip'], function() {
+		$(document).on("dragover", dragOverHandler);
+		$(document).on("drop", dropHandler);
+		console.log('init done');
+	});
 
-	$(document).on("drop", dropHandler);
-	console.log('onInitFs done, new');
 }
 
 function dragOverHandler(e) {
-	e.preventDefault();
+	e.originalEvent.preventDefault();
+	e.originalEvent.dataTransfer.dropEffect = "move";
 }
 
-
 function dropHandler(e) {
-	e.stopPropagation();
 	e.preventDefault();
+	e.stopPropagation();
 
 	if(!e.originalEvent.dataTransfer.files) return;
 	var files = e.originalEvent.dataTransfer.files;
@@ -44,84 +41,74 @@ function dropHandler(e) {
  		doError("You may only drop one file.");
  		return;
  	}
-
  	handleFile(files[0]);
  }
 
 function doError(s) {
-	var errorBlock = "<div class='alert alert-block alert-error'>";
-	errorBlock += '<button class="close" data-dismiss="alert">&times;</button>';
-	errorBlock += "<p>"+s+"</p>";
-	errorBlock += "</div>";
+	var errorBlock = `
+	<div class='alert alert-block alert-error'>
+	<button class="close" data-dismiss="alert">&times;</button>
+	<p>${s}</p>
+	</div>
+	`;
 	$("#alertArea").html(errorBlock);
 }
 
 function handleFile(file) {
-	zip.workerScriptsPath = "js/";
+	console.log('try to parse '+file.name);
 
-	zip.createReader(new zip.BlobReader(file), function(reader) {
-		console.log("did create reader");
-	    reader.getEntries(function(entries) {
-	    	console.log("got entries");
-	    	
-			$("#introText").hide();
+	images = []; 
+	curPanel = 0;
+	$("#comicImg").attr("src","");
+	$("#buttonArea").hide();
 
-	    	//Start a modal for our status
+	archiveOpenFile(file, null, function(archive, err) {
+		if (archive) {
+
 	    	var modalString = 'Parsed the CBZ - Saving Images. This takes a <b>long</b> time!';
 	    	$("#statusModalText").html(modalString);
 			$("#statusModal").modal({keyboard:false});
 
-	        entries.forEach(function(entry) {
-	        	if(!entry.directory && entry.filename.indexOf(".jpg") != -1) {
-	        		//rewrite w/o a path
-	        		var cleanName = entry.filename;
-	        		if(cleanName.indexOf("/") >= 0) cleanName = cleanName.split("/").pop();
-					dir.getFile(cleanName, {create:true}, function(file) {
-						console.log("Yes, I opened "+file.fullPath);
-		        		images.push({path:file.toURL(), loaded:false})
-						entry.getData(new zip.FileWriter(file), function(e) {
+			console.info('Uncompressing ' + archive.archive_type + ' ...');
+			// filter archive entries to files
+			let imageArchive = archive.entries.filter(e => {
+				return e.is_file;
+			});
 
-							done++;
-							//$("#statusModalText").html("Did "+done+" images out of "+images.length);
-							var perc = Math.floor(done/images.length*100);
-							var pString = 'Processing images.';
-							pString += '<div class="progress progress-striped active">';
-							pString += '<div class="bar" style="width: '+perc+'%;"></div>';
-							pString += '</div>';
-							$("#statusModalText").html(pString);
+			imageArchive.forEach(entry => {
 
-							for(var i=0; i<images.length; i++) {
-								if(images[i].path == file.toURL()) {
-									images[i].loaded = true; 
-									break;
-								}								
-							}
+				entry.readData(function(data, err) {
+					let url = URL.createObjectURL(new Blob([data]));
+					images.push(url);
 
-							if(done == images.length) {
-								$("#statusModal").modal("hide");
-								//enable buttons
-								$("#buttonArea").show();
-								$("#prevBtn").on("click",prevPanel);
-								$("#nextBtn").on("click",nextPanel);
-								drawPanel(0);
-							}
-						});
+					var perc = Math.floor(images.length/archive.entries.length*100);
+					var pString = `
+						Processing images.
+						<div class="progress progress-striped active">
+						<div class="bar" style="width: ${perc}%;"></div>
+						</div>
+					`;
+					$("#statusModalText").html(pString);
+					if(imageArchive.length === images.length) {
+						$("#statusModal").modal("hide");
+						$("#buttonArea").show();
+						drawPanel(0);
+					}					
+				});
+			});
 
-					},errorHandler);
 
-		        }
-	        });
-	    });
-	}, function(err) {
-		doError("Sorry, but unable to read this as a CBR file.");
-	    console.dir(err);
+		} else {
+			console.error(err);
+			doError(err);
+		}
 	});
 
 }
 
 function drawPanel(num) {
 	curPanel = num;
-	$("#comicImg").attr("src",images[num].path);
+	$("#comicImg").attr("src",images[num]);
 	$("#panelCount").html("Panel "+(curPanel+1)+" out of "+images.length);
 }
 
